@@ -308,6 +308,19 @@
       box-shadow: none;
     }
   }
+
+  .standalone .phone {
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .standalone body {
+    padding: 0 !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+  }
 </style>
 </head>
 <body>
@@ -1362,6 +1375,11 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./service-worker.js').catch(() => {});
   });
+}
+
+// ── PWA standalone detection ──
+if (window.matchMedia('(display-mode: standalone)').matches) {
+  document.body.classList.add('standalone');
 }
 </script>
 </body>
