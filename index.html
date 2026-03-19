@@ -324,6 +324,22 @@
     }
   }
 
+  /* 针对华为等浏览器的额外强制全屏 */
+  @media (max-width: 768px) {
+    body {
+      padding: 0 !important;
+      justify-content: flex-start !important;
+      align-items: stretch !important;
+    }
+    .phone {
+      width: 100vw !important;
+      height: 100vh !important;
+      border-radius: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+  }
+
   .standalone .phone {
     width: 100vw !important;
     height: 100vh !important;
@@ -332,6 +348,20 @@
     box-shadow: none !important;
   }
   .standalone body {
+    padding: 0 !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+  }
+
+  .mobile-fullscreen .phone {
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-fullscreen body {
     padding: 0 !important;
     justify-content: flex-start !important;
     align-items: stretch !important;
@@ -1395,6 +1425,11 @@ if ('serviceWorker' in navigator) {
 // ── PWA standalone detection ──
 if (window.matchMedia('(display-mode: standalone)').matches) {
   document.body.classList.add('standalone');
+}
+
+// ── 强制移动设备全屏 ──
+if (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) {
+  document.body.classList.add('mobile-fullscreen');
 }
 </script>
 </body>
