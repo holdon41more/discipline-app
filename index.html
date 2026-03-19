@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>自律小星球</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#EDE6FF">
+<link rel="manifest" href="./manifest.webmanifest">
+<style>
+  :root {
+    --pink:    #FFD6E0;
+    --pink2:   #FFB3C6;
+    --purple:  #E8D5FF;
+    --purple2: #C9A8FF;
+    --blue:    #C8E6FF;
+    --blue2:   #96CCFF;
+    --green:   #C8F0D8;
+    --green2:  #90DFB0;
+    --mint:    #D4F5EE;
+    --yellow:  #FFF4C2;
+    --yellow2: #FFE57A;
+    --ink:     #2A1F3D;
+    --ink2:    #5A4A72;
+    --white:   #FFFCFF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #EDE6FF;
+    min-height: 100vh;
+    display: flex; justify-content: center; align-items: center;
+    padding: 24px 16px;
+  }
+  .phone {
+    width: 375px; height: 812px;
+    background: var(--white);
+    border-radius: 44px; border: 3px solid var(--ink);
+    overflow: hidden; box-shadow: 6px 6px 0 var(--ink);
+    display: flex; flex-direction: column; position: relative;
+  }
+  .page { display: none; flex-direction: column; height: 100%; position: absolute; inset: 0; }
+  .page.active { display: flex; }
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 26px 0; font-size: 12px; font-weight: 800; color: var(--ink2); flex-shrink: 0;
+  }
+
+  /* ── HOME ── */
+  #page-home { background: var(--white); }
+  .home-bg {
+    position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse 300px 260px at 50% 45%, #F0E6FF 0%, transparent 70%),
+      radial-gradient(ellipse 200px 180px at 15% 85%, #FFE4EE 0%, transparent 60%),
+      radial-gradient(ellipse 180px 160px at 85% 10%, #D8F0FF 0%, transparent 60%);
+  }
+  .home-content { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; }
+  .header { padding: 8px 22px 0; flex-shrink: 0; display: flex; justify-content: space-between; align-items: flex-start; }
+  .greeting { font-size: 12px; font-weight: 700; color: var(--ink2); }
+  .h-title { font-size: 18px; font-weight: 900; color: var(--ink); line-height: 1.25; margin-top: 1px; }
+  .chips { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
+  .chip { display: flex; align-items: center; gap: 4px; padding: 4px 11px; border-radius: 20px; border: 2px solid var(--ink); font-size: 12px; font-weight: 800; box-shadow: 2px 2px 0 var(--ink); }
+  .chip.y { background: var(--yellow); }
+  .chip.p { background: var(--purple); }
+  .plant-stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 20px 4px; }
+  .plant-wrap { width: 300px; height: 320px; }
+  .plant-svg { width: 100%; height: 100%; overflow: visible; }
+  @keyframes bob      { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  @keyframes sway-l   { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(-11deg)} }
+  @keyframes sway-r   { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(11deg)} }
+  @keyframes sway-top { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(4deg)} }
+  @keyframes blink    { 0%,88%,100%{transform:scaleY(1)} 93%{transform:scaleY(0.08)} }
+  @keyframes glow-p   { 0%,100%{opacity:.3;transform:scale(1)} 50%{opacity:.5;transform:scale(1.05)} }
+  @keyframes twinkle  { 0%,100%{opacity:0;transform:scale(.3)} 50%{opacity:1;transform:scale(1)} }
+  .body-g  { animation: bob 3.4s ease-in-out infinite; }
+  .leaf-l  { transform-origin: 104px 155px; animation: sway-l   2.6s ease-in-out infinite; }
+  .leaf-r  { transform-origin: 196px 145px; animation: sway-r   2.2s ease-in-out infinite .4s; }
+  .leaf-tl { transform-origin: 128px 95px;  animation: sway-top 3.0s ease-in-out infinite .7s; }
+  .leaf-tr { transform-origin: 172px 90px;  animation: sway-top 2.8s ease-in-out infinite .2s; }
+  .eyes-g  { transform-origin: 150px 135px; animation: blink 5.5s ease-in-out infinite 1.5s; }
+  .glow    { animation: glow-p 4s ease-in-out infinite; }
+  .tw1 { animation: twinkle 2.6s ease-in-out infinite 0s; }
+  .tw2 { animation: twinkle 2.6s ease-in-out infinite .87s; }
+  .tw3 { animation: twinkle 2.6s ease-in-out infinite 1.73s; }
+  .name-tag { display:flex; flex-direction:column; align-items:center; gap:5px; margin-top:-6px; }
+  .name-pill { font-size:15px; font-weight:900; color:var(--ink); background:var(--yellow); padding:5px 20px; border-radius:24px; border:2px solid var(--ink); box-shadow:2px 2px 0 var(--ink); }
+  .level-txt { font-size:12px; font-weight:700; color:var(--ink2); }
+  .xp-wrap { width:180px; margin-top:8px; }
+  .xp-row { display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:var(--ink2); margin-bottom:4px; }
+  .xp-bg { height:12px; background:var(--purple); border-radius:12px; border:2px solid var(--ink); overflow:hidden; }
+  .xp-fill { height:100%; width:34%; background:linear-gradient(90deg,var(--purple2),var(--pink2)); border-radius:10px; }
+  .streak { margin: 8px 20px 0; flex-shrink: 0; background: linear-gradient(120deg, var(--yellow) 0%, var(--pink) 100%); border-radius:18px; border:2px solid var(--ink); box-shadow:2px 2px 0 var(--ink); padding:9px 16px; display:flex; align-items:center; gap:10px; }
+  .streak-num { font-size:15px; font-weight:900; color:var(--ink); }
+  .streak-sub { font-size:11px; font-weight:700; color:var(--ink2); }
+  .streak.hidden { opacity: 0; transform: translateY(6px); pointer-events: none; }
+  .streak { transition: opacity .35s ease, transform .35s ease; }
+
+  /* ── TASKS ── */
+  #page-tasks { background: var(--white); }
+  .page-header { flex-shrink: 0; padding: 12px 22px 14px; border-bottom: 2px solid var(--ink); }
+  .page-header.green { background: linear-gradient(135deg, #a8edcc 0%, #c8f0d8 100%); }
+  .page-header.amber { background: linear-gradient(135deg, #ffe57a 0%, #ffd6e0 100%); }
+  .ph-row { display:flex; align-items:flex-end; justify-content:space-between; gap:10px; }
+  .ph-title { font-size: 20px; font-weight: 900; color: var(--ink); margin-top: 4px; }
+  .ph-sub   { font-size: 12px; font-weight: 700; color: var(--ink2); margin-top: 2px; }
+  .streak-pill {
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--ink);
+    background: var(--mint);
+    padding: 5px 10px;
+    border-radius: 14px;
+    border: 2px solid var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
+    white-space: nowrap;
+  }
+  .scroll-area { flex: 1; overflow-y: auto; padding: 14px 18px 8px; }
+  .scroll-area::-webkit-scrollbar { display: none; }
+  .section-label {
+    font-size: 11px; font-weight: 900; color: var(--ink2);
+    text-transform: uppercase; letter-spacing: .08em;
+    margin-bottom: 8px; margin-top: 4px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .section-label::after { content:''; flex:1; height:1.5px; background:var(--ink); opacity:.12; border-radius:2px; }
+
+  .task-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 13px; border-radius: 16px;
+    border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink);
+    margin-bottom: 7px; cursor: pointer;
+    transition: transform .1s, box-shadow .1s; user-select: none;
+  }
+  .task-card:active { transform: translate(2px,2px); box-shadow: none; }
+  .task-card.done { opacity: .55; }
+  .task-card.done .t-name { text-decoration: line-through; }
+  .task-card.cp { background: var(--pink); }
+  .task-card.cy { background: var(--yellow); }
+  .task-card.cb { background: var(--blue); }
+  .task-card.cg { background: var(--green); }
+  .task-card.cm { background: var(--mint); }
+  .task-card.cv { background: var(--purple); }
+  .t-emoji { font-size: 22px; flex-shrink: 0; }
+  .t-info  { flex: 1; }
+  .t-name  { font-size: 14px; font-weight: 800; color: var(--ink); }
+  .t-sub   { font-size: 11px; font-weight: 600; color: var(--ink2); margin-top: 1px; }
+  .t-reward{ font-size: 12px; font-weight: 800; color: var(--ink2); flex-shrink: 0; }
+  .chk {
+    width: 24px; height: 24px; border-radius: 8px;
+    border: 2.5px solid var(--ink); display: flex; align-items: center;
+    justify-content: center; font-size: 13px; flex-shrink: 0;
+    background: var(--white); transition: background .15s;
+  }
+  .task-card.done .chk { background: var(--green2); }
+
+  /* water counter badge */
+  .water-badge {
+    font-size: 12px; font-weight: 900; color: var(--ink);
+    background: var(--blue2); padding: 3px 9px; border-radius: 12px;
+    border: 1.5px solid var(--ink); flex-shrink: 0; min-width: 36px; text-align: center;
+  }
+
+  .add-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; padding: 11px; border-radius: 16px;
+    border: 2px dashed var(--ink2); background: none;
+    font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;
+    color: var(--ink2); cursor: pointer; margin-bottom: 16px; transition: background .15s;
+  }
+  .add-btn:hover { background: var(--purple); border-style: solid; border-color: var(--ink); }
+
+  .tomato-card {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; border-radius: 18px;
+    border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink);
+    background: linear-gradient(120deg, var(--pink) 0%, var(--purple) 100%);
+    margin-bottom: 14px; cursor: pointer; transition: transform .1s, box-shadow .1s;
+  }
+  .tomato-card:active { transform: translate(2px,2px); box-shadow: none; }
+  .tomato-icon { font-size: 36px; flex-shrink: 0; }
+  .tomato-name { font-size: 15px; font-weight: 900; color: var(--ink); }
+  .tomato-sub  { font-size: 11px; font-weight: 700; color: var(--ink2); margin-top: 2px; line-height: 1.4; }
+  .tomato-badge { font-size: 11px; font-weight: 800; color: var(--ink); background: var(--green); padding: 4px 10px; border-radius: 12px; border: 1.5px solid var(--ink); flex-shrink: 0; }
+
+  /* ── MODALS ── */
+  .modal-overlay {
+    display: none; position: absolute; inset: 0;
+    background: rgba(42,31,61,.45); z-index: 50;
+    align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    width: 100%; background: var(--white);
+    border-radius: 28px 28px 0 0; border: 2.5px solid var(--ink); border-bottom: none;
+    padding: 20px 20px 32px; box-shadow: 0 -4px 0 var(--ink);
+  }
+  .modal-title { font-size: 16px; font-weight: 900; color: var(--ink); margin-bottom: 14px; }
+  .modal-input {
+    width: 100%; padding: 11px 14px; border-radius: 14px;
+    border: 2px solid var(--ink); font-family: 'Nunito', sans-serif;
+    font-size: 14px; font-weight: 700; color: var(--ink);
+    background: var(--purple); outline: none; margin-bottom: 10px; display: block;
+  }
+  .modal-input::placeholder { color: var(--ink2); opacity: .6; }
+  .modal-row { display: flex; gap: 8px; }
+  .modal-btn {
+    flex: 1; padding: 11px; border-radius: 14px;
+    border: 2px solid var(--ink); font-family: 'Nunito', sans-serif;
+    font-size: 13px; font-weight: 800; cursor: pointer; transition: transform .1s;
+  }
+  .modal-btn:active { transform: scale(.97); }
+  .modal-btn.confirm { background: var(--green2); color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+  .modal-btn.cancel  { background: var(--white); color: var(--ink2); }
+
+  /* water modal specific */
+  .water-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 14px; }
+  .water-opt {
+    padding: 12px 4px; border-radius: 14px; border: 2px solid var(--ink);
+    background: var(--blue); font-family: 'Nunito', sans-serif;
+    font-size: 13px; font-weight: 800; color: var(--ink);
+    cursor: pointer; text-align: center; transition: transform .1s, background .1s;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .water-opt:active { transform: translate(2px,2px); box-shadow: none; }
+  .water-opt:hover  { background: var(--blue2); }
+  .water-count-display {
+    text-align: center; font-size: 28px; font-weight: 900; color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .water-sub-display {
+    text-align: center; font-size: 12px; font-weight: 700; color: var(--ink2); margin-bottom: 14px;
+  }
+
+  /* ── ADVENTURE ── */
+  #page-adventure { background: var(--white); }
+  .locked-stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 32px; text-align: center; gap: 16px; }
+  .lock-icon  { font-size: 72px; }
+  .lock-title { font-size: 22px; font-weight: 900; color: var(--ink); }
+  .lock-sub   { font-size: 13px; font-weight: 700; color: var(--ink2); line-height: 1.6; }
+  .lock-bar-wrap { width: 220px; }
+  .lock-bar-label { display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:var(--ink2); margin-bottom:5px; }
+  .lock-bar-bg   { height:14px; background:var(--purple); border-radius:14px; border:2px solid var(--ink); overflow:hidden; }
+  .lock-bar-fill { height:100%; width:34%; background:linear-gradient(90deg,var(--purple2),var(--pink2)); border-radius:12px; }
+  .lock-hint { font-size:12px; font-weight:700; color:var(--ink); background:var(--yellow); padding:8px 18px; border-radius:16px; border:2px solid var(--ink); box-shadow:2px 2px 0 var(--ink); }
+
+  /* ── WISHES ── */
+  #page-wishes { background: var(--white); }
+  .currency-row { display:flex; gap:10px; margin-bottom:14px; flex-shrink:0; }
+  .cur-card { flex:1; border-radius:16px; border:2px solid var(--ink); box-shadow:2px 2px 0 var(--ink); padding:12px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .cur-card.y { background: var(--yellow); }
+  .cur-card.p { background: var(--purple); }
+  .cur-icon { font-size:26px; }
+  .cur-val  { font-size:20px; font-weight:900; color:var(--ink); }
+  .cur-lbl  { font-size:10px; font-weight:700; color:var(--ink2); }
+  .wish-card { display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:18px; border:2px solid var(--ink); box-shadow:2px 2px 0 var(--ink); margin-bottom:8px; background:var(--white); }
+  .wish-emoji { font-size:28px; flex-shrink:0; }
+  .wish-info  { flex:1; }
+  .wish-name  { font-size:14px; font-weight:800; color:var(--ink); }
+  .wish-cost  { font-size:11px; font-weight:700; color:var(--ink2); margin-top:2px; }
+  .wish-prog  { height:5px; background:var(--purple); border-radius:4px; margin-top:5px; overflow:hidden; border:1px solid var(--ink); }
+  .wish-fill  { height:100%; background:linear-gradient(90deg,var(--yellow2),var(--pink2)); border-radius:4px; }
+  .wish-ready { font-size:11px; font-weight:800; color:var(--ink); background:var(--green2); padding:4px 10px; border-radius:12px; border:1.5px solid var(--ink); flex-shrink:0; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav { display:flex; padding:8px 10px 18px; gap:4px; border-top:2.5px solid var(--ink); background:var(--white); flex-shrink:0; }
+  .nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 2px; border-radius:14px; font-size:10px; font-weight:800; color:var(--ink2); cursor:pointer; transition:background .15s; border:2px solid transparent; user-select:none; }
+  .nav-item:hover { background: var(--purple); }
+  .nav-item.active { background:var(--purple); border-color:var(--ink); color:var(--ink); box-shadow:2px 2px 0 var(--ink); }
+  .nav-icon { font-size:22px; }
+
+  /* ── TOAST / ACHIEVEMENT ── */
+  .toast {
+    width: calc(100% - 28px);
+    margin: 0 auto 18px;
+    border-radius: 18px;
+    border: 2px solid var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
+    padding: 12px 14px;
+    background: linear-gradient(120deg, var(--yellow) 0%, var(--purple) 100%);
+    color: var(--ink);
+    text-align: left;
+  }
+  .toast-title { font-size: 14px; font-weight: 900; }
+  .toast-sub { font-size: 12px; font-weight: 700; color: var(--ink2); margin-top: 4px; line-height: 1.4; }
+  .toast-badge {
+    display:inline-block;
+    margin-top: 10px;
+    font-size: 11px;
+    font-weight: 900;
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1.5px solid var(--ink);
+    background: var(--green2);
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- ══ HOME ══ -->
+  <div class="page active" id="page-home">
+    <div class="home-bg"></div>
+    <div class="home-content">
+      <div class="status-bar"><span>9:41</span><span>🔋 100%</span></div>
+      <div class="header">
+        <div>
+          <div class="greeting">早上好 🌸</div>
+          <div class="h-title">今天也好好<br>照顾自己～</div>
+        </div>
+        <div class="chips">
+          <div class="chip y">⭐ <span id="ui-stars-yellow">128</span></div>
+          <div class="chip p">💜 <span id="ui-stars-purple">34</span></div>
+          <div class="chip" style="background:var(--mint);cursor:pointer" onclick="openSettings()">⚙️ 设置</div>
+        </div>
+      </div>
+      <div class="plant-stage">
+        <div class="plant-wrap">
+          <svg class="plant-svg" viewBox="0 0 300 320" xmlns="http://www.w3.org/2000/svg">
+            <!-- 底部投影 -->
+            <ellipse class="glow" cx="150" cy="285" rx="60" ry="15" fill="rgba(42, 31, 61, 0.1)" />
+            
+            <!-- 花盆 (比例更大，更圆润) -->
+            <g class="pot-g">
+              <!-- 盆身 -->
+              <path d="M85 220 L215 220 L200 295 C200 305, 100 305, 100 295 Z" fill="var(--purple)" stroke="var(--ink)" stroke-width="4.5" stroke-linejoin="round"/>
+              <!-- 盆沿 -->
+              <rect x="75" y="208" width="150" height="22" rx="11" fill="var(--purple2)" stroke="var(--ink)" stroke-width="4.5"/>
+              <!-- 装饰细节 -->
+              <circle cx="150" cy="260" r="15" fill="white" opacity="0.3" />
+            </g>
+
+            <!-- 植物主体 -->
+            <g class="body-g">
+              <!-- 茎 -->
+              <path d="M150 215 Q150 180 150 145" fill="none" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>
+              
+              <!-- 左叶 (带叶尖的水滴形) -->
+              <g class="leaf-l">
+                <path d="M145 190 C110 195, 85 175, 90 145 C95 125, 120 145, 145 185 Z" fill="var(--green2)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
+              </g>
+              
+              <!-- 右叶 -->
+              <g class="leaf-r">
+                <path d="M155 180 C190 185, 215 165, 210 135 C205 115, 180 135, 155 175 Z" fill="var(--green)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
+              </g>
+
+              <!-- 脑袋 -->
+              <circle cx="150" cy="135" r="48" fill="var(--green)" stroke="var(--ink)" stroke-width="4.5"/>
+              
+              <!-- 头顶嫩芽 -->
+              <g class="leaf-tl">
+                <path d="M142 92 C130 75, 125 55, 138 45 C145 55, 148 75, 145 92 Z" fill="var(--green2)" stroke="var(--ink)" stroke-width="3.5" />
+              </g>
+              <g class="leaf-tr">
+                <path d="M158 92 C170 75, 175 55, 162 45 C155 55, 152 75, 155 92 Z" fill="var(--green2)" stroke="var(--ink)" stroke-width="3.5" />
+              </g>
+
+              <!-- 大圆眼睛 -->
+              <g class="eyes-g">
+                <g transform="translate(130, 135)">
+                  <circle r="10" fill="var(--ink)" />
+                  <circle r="4" cx="-3" cy="-3" fill="white" />
+                  <circle r="1.5" cx="3" cy="3" fill="white" opacity="0.4" />
+                </g>
+                <g transform="translate(170, 135)">
+                  <circle r="10" fill="var(--ink)" />
+                  <circle r="4" cx="-3" cy="-3" fill="white" />
+                  <circle r="1.5" cx="3" cy="3" fill="white" opacity="0.4" />
+                </g>
+              </g>
+
+              <!-- 腮红与嘴巴 -->
+              <circle cx="120" cy="155" r="6" fill="#FFB3C6" opacity="0.6" />
+              <circle cx="180" cy="155" r="6" fill="#FFB3C6" opacity="0.6" />
+              <path d="M146 158 Q150 163 154 158" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+            </g>
+          </svg>
+        </div>
+        <div class="name-tag">
+          <div class="name-pill" id="ui-plant-name">🌱 小嫩芽</div>
+          <div class="level-txt" id="ui-level-text">Lv.1 · 幼苗期</div>
+        </div>
+        <div class="xp-wrap">
+          <div class="xp-row"><span>成长值</span><span id="ui-xp-text">17 / 50</span></div>
+          <div class="xp-bg"><div class="xp-fill" id="ui-xp-fill"></div></div>
+        </div>
+      </div>
+      <div class="streak" id="home-streak-card">
+        <span style="font-size:24px">🔥</span>
+        <div><div class="streak-num" id="ui-streak-num">连续 7 天照顾自己！</div><div class="streak-sub" id="ui-streak-sub">小嫩芽好开心，继续加油～</div></div>
+        <span style="font-size:20px;margin-left:auto">🎉</span>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active" onclick="goPage('home')"><div class="nav-icon">🏠</div><span>主页</span></div>
+        <div class="nav-item" onclick="goPage('tasks')"><div class="nav-icon">✅</div><span>任务</span></div>
+        <div class="nav-item" onclick="goPage('adventure')"><div class="nav-icon">⚔️</div><span>冒险</span></div>
+        <div class="nav-item" onclick="goPage('wishes')"><div class="nav-icon">⭐</div><span>愿望</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TASKS ══ -->
+  <div class="page" id="page-tasks">
+    <div class="status-bar" style="background:var(--white)"><span>9:41</span><span>🔋 100%</span></div>
+    <div class="page-header green">
+      <div class="ph-title">✅ 今日任务</div>
+      <div class="ph-sub">完成任务，给小嫩芽喂星星～</div>
+    </div>
+    <div class="scroll-area">
+      <div class="section-label">番茄专注</div>
+      <div class="tomato-card" onclick="openTomato()">
+        <div class="tomato-icon">🍅</div>
+        <div style="flex:1">
+          <div class="tomato-name">专注自习</div>
+          <div class="tomato-sub">专注 25 分钟 → ⭐×10<br>每日上限 100 颗星星（今日已得 <span id="tomato-earned">0</span> 颗）</div>
+        </div>
+        <div class="tomato-badge" id="tomato-btn">开始 →</div>
+      </div>
+
+      <div class="section-label">生活任务</div>
+
+      <div class="task-card cp" data-task-id="brush_am" onclick="toggleTask(this)">
+        <div class="t-emoji">🪥</div>
+        <div class="t-info"><div class="t-name">早刷牙</div><div class="t-sub">最佳 07:00–09:00</div></div>
+        <div class="t-reward">⭐×1</div>
+        <div class="chk"></div>
+      </div>
+      <div class="task-card cy" data-task-id="breakfast" onclick="toggleTask(this)">
+        <div class="t-emoji">🍳</div>
+        <div class="t-info"><div class="t-name">吃早餐</div><div class="t-sub">最佳 07:30–09:30</div></div>
+        <div class="t-reward">⭐×2</div>
+        <div class="chk"></div>
+      </div>
+      <div class="task-card cg" data-task-id="lunch" onclick="toggleTask(this)">
+        <div class="t-emoji">🍱</div>
+        <div class="t-info"><div class="t-name">吃午餐</div><div class="t-sub">最佳 11:30–13:00</div></div>
+        <div class="t-reward">⭐×2</div>
+        <div class="chk"></div>
+      </div>
+      <div class="task-card cm" data-task-id="dinner" onclick="toggleTask(this)">
+        <div class="t-emoji">🍜</div>
+        <div class="t-info"><div class="t-name">吃晚餐</div><div class="t-sub">最佳 17:30–19:30</div></div>
+        <div class="t-reward">⭐×2</div>
+        <div class="chk"></div>
+      </div>
+
+      <!-- 喝水：一键记录，无限次 -->
+      <div id="water-list"></div>
+
+      <div class="task-card cv" data-task-id="shower" onclick="toggleTask(this)">
+        <div class="t-emoji">🚿</div>
+        <div class="t-info"><div class="t-name">洗澡</div><div class="t-sub">睡前完成更佳</div></div>
+        <div class="t-reward">⭐×2</div>
+        <div class="chk"></div>
+      </div>
+      <div class="task-card cp" data-task-id="brush_pm" onclick="toggleTask(this)">
+        <div class="t-emoji">🪥</div>
+        <div class="t-info"><div class="t-name">晚刷牙</div><div class="t-sub">睡前 22:00–23:30</div></div>
+        <div class="t-reward">⭐×1</div>
+        <div class="chk"></div>
+      </div>
+      <div class="task-card cy" data-task-id="poop" onclick="toggleTask(this)">
+        <div class="t-emoji">🚽</div>
+        <div class="t-info"><div class="t-name">排便</div><div class="t-sub">每日记录</div></div>
+        <div class="t-reward">⭐×1</div>
+        <div class="chk"></div>
+      </div>
+
+      <button class="add-btn" onclick="openAddModal()">＋ 添加自定义任务</button>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="goPage('home')"><div class="nav-icon">🏠</div><span>主页</span></div>
+      <div class="nav-item active"><div class="nav-icon">✅</div><span>任务</span></div>
+      <div class="nav-item" onclick="goPage('adventure')"><div class="nav-icon">⚔️</div><span>冒险</span></div>
+      <div class="nav-item" onclick="goPage('wishes')"><div class="nav-icon">⭐</div><span>愿望</span></div>
+    </div>
+
+
+
+    <!-- 番茄钟 modal -->
+    <div class="modal-overlay" id="tomato-modal" onclick="closeTomatoOutside(event)">
+      <div class="modal" style="text-align:center">
+        <div style="font-size:13px;font-weight:800;color:var(--ink2);margin-bottom:6px" id="tomato-status-txt">专注中...</div>
+        <div style="font-size:52px;font-weight:900;color:var(--ink);letter-spacing:2px;margin-bottom:4px" id="tomato-timer">25:00</div>
+        <div style="font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:16px">完成后获得 ⭐×10 · 今日上限 100</div>
+        <!-- progress ring -->
+        <svg width="120" height="120" viewBox="0 0 120 120" style="margin-bottom:14px">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="var(--purple)" stroke-width="8"/>
+          <circle id="tomato-ring" cx="60" cy="60" r="52" fill="none" stroke="var(--purple2)" stroke-width="8"
+            stroke-dasharray="326.7" stroke-dashoffset="0"
+            stroke-linecap="round" transform="rotate(-90 60 60)"
+            style="transition:stroke-dashoffset 1s linear"/>
+          <text x="60" y="66" text-anchor="middle" font-size="22" font-weight="900" font-family="Nunito,sans-serif" fill="var(--ink)" id="tomato-ring-txt">🍅</text>
+        </svg>
+        <div class="modal-row">
+          <button class="modal-btn cancel" id="tomato-action-btn" onclick="toggleTomato()">⏸ 暂停</button>
+          <button class="modal-btn cancel" onclick="closeTomatoModal()">放弃</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 番茄完成 modal -->
+    <div class="modal-overlay" id="tomato-done">
+      <div class="modal" style="text-align:center">
+        <div style="font-size:48px;margin-bottom:8px">🎉</div>
+        <div class="modal-title" style="text-align:center">专注完成！</div>
+        <div style="font-size:13px;font-weight:700;color:var(--ink2);margin:8px 0 16px" id="tomato-done-desc">获得 ⭐×10！</div>
+        <button class="modal-btn confirm" style="width:100%" onclick="closeTomatoDone()">太棒了 ✓</button>
+      </div>
+    </div>
+    <div class="modal-overlay" id="add-modal" onclick="closeAddOutside(event)">
+      <div class="modal">
+        <div class="modal-title">✏️ 添加自定义任务</div>
+        <input class="modal-input" id="task-name-input" placeholder="任务名称，比如：出门散步" maxlength="20"/>
+        <input class="modal-input" id="task-note-input" placeholder="备注说明（可选），比如：每天至少30分钟" maxlength="30"/>
+        <div class="modal-row">
+          <button class="modal-btn cancel" onclick="closeAddModal()">取消</button>
+          <button class="modal-btn confirm" onclick="addCustomTask()">确认添加 ✓</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ADVENTURE ══ -->
+  <div class="page" id="page-adventure">
+    <div class="status-bar"><span>9:41</span><span>🔋 100%</span></div>
+    <div class="locked-stage">
+      <div class="lock-icon">🔒</div>
+      <div class="lock-title">冒险世界即将开启</div>
+      <div class="lock-sub">继续照顾小嫩芽，<br>积攒足够的星星，<br>它就会破土而出，<br>变成你的冒险伙伴！</div>
+      <div class="lock-bar-wrap">
+      <div class="lock-bar-label"><span>解锁进度</span><span id="ui-adventure-progress">128 / 500 ⭐</span></div>
+        <div class="lock-bar-bg"><div class="lock-bar-fill" id="ui-adventure-fill"></div></div>
+      </div>
+      <div class="lock-hint" id="ui-adventure-hint">🌱 再攒 372 颗星星就能解锁！</div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="goPage('home')"><div class="nav-icon">🏠</div><span>主页</span></div>
+      <div class="nav-item" onclick="goPage('tasks')"><div class="nav-icon">✅</div><span>任务</span></div>
+      <div class="nav-item active"><div class="nav-icon">⚔️</div><span>冒险</span></div>
+      <div class="nav-item" onclick="goPage('wishes')"><div class="nav-icon">⭐</div><span>愿望</span></div>
+    </div>
+  </div>
+
+  <!-- ══ WISHES ══ -->
+  <div class="page" id="page-wishes">
+    <div class="status-bar"><span>9:41</span><span>🔋 100%</span></div>
+    <div class="page-header amber">
+      <div class="ph-row">
+        <div class="ph-title">⭐ 我的愿望</div>
+        <div class="streak-pill" id="ui-wish-streak">已连续登录 1 天</div>
+      </div>
+      <div class="ph-sub">用星星兑换你想要的东西</div>
+    </div>
+    <div class="scroll-area">
+      <div class="currency-row">
+        <div class="cur-card y"><div class="cur-icon">⭐</div><div class="cur-val" id="ui-wish-stars-yellow">128</div><div class="cur-lbl">黄星（生活）</div></div>
+        <div class="cur-card p"><div class="cur-icon">💜</div><div class="cur-val" id="ui-wish-stars-purple">34</div><div class="cur-lbl">紫星（副本）</div></div>
+      </div>
+      <div class="section-label">心愿清单</div>
+      <div class="wish-card" data-wish-id="milk_tea" data-wish-name="喝一杯好奶茶" data-wish-cost="50" style="background:var(--green);cursor:pointer" onclick="redeemWish(this,'喝一杯好奶茶',50)">
+        <div class="wish-emoji">🧋</div>
+        <div class="wish-info"><div class="wish-name">喝一杯好奶茶</div><div class="wish-cost">需要 50 ⭐ · 已攒 128</div><div class="wish-prog"><div class="wish-fill" style="width:100%"></div></div></div>
+        <div class="wish-ready">可兑换！</div>
+      </div>
+      <div class="wish-card" data-wish-id="book" data-wish-name="买一本想看的书" data-wish-cost="80" style="background:var(--blue);cursor:pointer" onclick="redeemWish(this,'买一本想看的书',80)">
+        <div class="wish-emoji">📚</div>
+        <div class="wish-info"><div class="wish-name">买一本想看的书</div><div class="wish-cost">需要 80 ⭐ · 已攒 128</div><div class="wish-prog"><div class="wish-fill" style="width:100%"></div></div></div>
+        <div class="wish-ready">可兑换！</div>
+      </div>
+      <div class="wish-card" data-wish-id="controller" data-wish-name="买一个手柄" data-wish-cost="300" style="background:var(--pink)">
+        <div class="wish-emoji">🎮</div>
+        <div class="wish-info"><div class="wish-name">买一个手柄</div><div class="wish-cost">需要 300 ⭐ · 已攒 128</div><div class="wish-prog"><div class="wish-fill" style="width:43%"></div></div></div>
+      </div>
+      <div class="wish-card" data-wish-id="travel" data-wish-name="计划一次旅行" data-wish-cost="1000" style="background:var(--yellow)">
+        <div class="wish-emoji">✈️</div>
+        <div class="wish-info"><div class="wish-name">计划一次旅行</div><div class="wish-cost">需要 1000 ⭐ · 已攒 128</div><div class="wish-prog"><div class="wish-fill" style="width:13%"></div></div></div>
+      </div>
+      <button class="add-btn" onclick="openWishModal()">＋ 添加新愿望</button>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="goPage('home')"><div class="nav-icon">🏠</div><span>主页</span></div>
+      <div class="nav-item" onclick="goPage('tasks')"><div class="nav-icon">✅</div><span>任务</span></div>
+      <div class="nav-item" onclick="goPage('adventure')"><div class="nav-icon">⚔️</div><span>冒险</span></div>
+      <div class="nav-item active"><div class="nav-icon">⭐</div><span>愿望</span></div>
+    </div>
+
+    <!-- 添加愿望 modal -->
+    <div class="modal-overlay" id="wish-modal" onclick="closeWishOutside(event)">
+      <div class="modal">
+        <div class="modal-title">🌟 添加新愿望</div>
+        <input class="modal-input" id="wish-name-input" placeholder="愿望名称，比如：买一双新鞋" maxlength="20"/>
+        <input class="modal-input" id="wish-cost-input" placeholder="需要多少颗星星？比如：200" maxlength="6" type="number"/>
+        <div class="modal-row">
+          <button class="modal-btn cancel" onclick="closeWishModal()">取消</button>
+          <button class="modal-btn confirm" onclick="addWish()">确认添加 ✓</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 兑换确认 modal -->
+    <div class="modal-overlay" id="redeem-modal" onclick="closeRedeemOutside(event)">
+      <div class="modal">
+        <div style="text-align:center;font-size:40px;margin-bottom:8px" id="redeem-emoji">🎉</div>
+        <div class="modal-title" style="text-align:center" id="redeem-title">确认兑换？</div>
+        <div style="text-align:center;font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:16px" id="redeem-desc"></div>
+        <div class="modal-row">
+          <button class="modal-btn cancel" onclick="closeRedeemModal()">再想想</button>
+          <button class="modal-btn confirm" onclick="confirmRedeem()">确认兑换 ✓</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 兑换成功 modal -->
+    <div class="modal-overlay" id="redeem-success">
+      <div class="modal" style="text-align:center">
+        <div style="font-size:48px;margin-bottom:8px">🎊</div>
+        <div class="modal-title" style="text-align:center">兑换成功！</div>
+        <div style="font-size:13px;font-weight:700;color:var(--ink2);margin:8px 0 16px" id="success-desc"></div>
+        <button class="modal-btn confirm" style="width:100%" onclick="document.getElementById('redeem-success').classList.remove('open')">好耶！✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 通用 toast modal（打开时弹出、自动消失） -->
+  <div class="modal-overlay" id="toast-modal">
+    <div class="toast" role="status" aria-live="polite">
+      <div class="toast-title" id="toast-title">欢迎回来～</div>
+      <div class="toast-sub" id="toast-sub">连续 1 天照顾自己！</div>
+      <div class="toast-badge" id="toast-badge" style="display:none">+💜 10 成就奖励</div>
+    </div>
+  </div>
+
+  <!-- 设置 modal -->
+  <div class="modal-overlay" id="settings-modal" onclick="closeSettingsOutside(event)">
+    <div class="modal">
+      <div class="modal-title">⚙️ 设置</div>
+      <div style="font-size:12px;font-weight:700;color:var(--ink2);line-height:1.6;margin-bottom:14px">
+        数据保存在本机浏览器里（刷新不丢）。如果之前测试过导致数字不是 0，可以在这里一键重置。
+      </div>
+      <div class="modal-row">
+        <button class="modal-btn cancel" onclick="closeSettings()">取消</button>
+        <button class="modal-btn confirm" style="background:var(--pink2)" onclick="resetData()">重置数据</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── state (localStorage) ──
+const STORAGE_KEY = 'self_discipline_planet_v1';
+const ADVENTURE_UNLOCK_STARS = 500;
+const ACHIEVEMENT_REWARD_PURPLE = 10;
+const STREAK_MILESTONES = [7, 15, 30];
+
+function todayKey(d = new Date()) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function defaultState() {
+  const tk = todayKey();
+  return {
+    starsYellow: 0,
+    starsPurple: 0,
+    xp: 0,
+    streakDays: 1,
+    lastActiveDate: tk,
+    daily: {
+      date: tk,
+      tomatoEarned: 0,
+      waterCount: 0,
+      taskDoneIds: {},
+      streakShownToday: false,
+    },
+    customTasks: [],
+    wishes: {
+      redeemed: {},
+      custom: [],
+    },
+    achievements: {
+      claimed: {}
+    },
+  };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    const base = defaultState();
+    const merged = { ...base, ...parsed };
+    merged.daily = { ...base.daily, ...(parsed.daily || {}) };
+    merged.customTasks = Array.isArray(parsed.customTasks) ? parsed.customTasks : base.customTasks;
+    merged.wishes = { ...base.wishes, ...(parsed.wishes || {}) };
+    merged.wishes.redeemed = { ...(base.wishes.redeemed), ...((parsed.wishes && parsed.wishes.redeemed) || {}) };
+    merged.wishes.custom = Array.isArray(parsed.wishes && parsed.wishes.custom) ? parsed.wishes.custom : base.wishes.custom;
+    merged.achievements = { ...base.achievements, ...(parsed.achievements || {}) };
+    merged.achievements.claimed = { ...(base.achievements.claimed), ...((parsed.achievements && parsed.achievements.claimed) || {}) };
+    return merged;
+  } catch {
+    return defaultState();
+  }
+}
+
+let state = loadState();
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function resetDaily(tk) {
+  state.daily = { date: tk, tomatoEarned: 0, waterCount: 0, taskDoneIds: {}, streakShownToday: false };
+}
+
+function showToast({ title, sub, showBadge = false }) {
+  const modal = document.getElementById('toast-modal');
+  if (!modal) return;
+  const t = document.getElementById('toast-title');
+  const s = document.getElementById('toast-sub');
+  const b = document.getElementById('toast-badge');
+  if (t) t.textContent = title;
+  if (s) s.textContent = sub;
+  if (b) b.style.display = showBadge ? 'inline-block' : 'none';
+  modal.classList.add('open');
+  window.clearTimeout(showToast._timer);
+  showToast._timer = window.setTimeout(() => modal.classList.remove('open'), 2200);
+}
+
+function maybeGrantStreakAchievements() {
+  const days = state.streakDays || 1;
+  if (!state.achievements) state.achievements = { claimed: {} };
+  if (!state.achievements.claimed) state.achievements.claimed = {};
+
+  const newly = STREAK_MILESTONES.filter(m => days >= m && !state.achievements.claimed['streak_' + m]);
+  if (newly.length === 0) return null;
+
+  const m = newly[0];
+  state.achievements.claimed['streak_' + m] = { at: Date.now(), rewardPurple: ACHIEVEMENT_REWARD_PURPLE };
+  state.starsPurple = Math.max(0, (state.starsPurple || 0) + ACHIEVEMENT_REWARD_PURPLE);
+  saveState();
+  return m;
+}
+
+function ensureToday() {
+  const tk = todayKey();
+  if (!state.daily || state.daily.date !== tk) resetDaily(tk);
+
+  if (state.lastActiveDate !== tk) {
+    // streak: if lastActive is yesterday => +1 else reset to 1
+    const last = new Date(state.lastActiveDate + 'T00:00:00');
+    const now = new Date(tk + 'T00:00:00');
+    const diffDays = Math.round((now - last) / (24 * 3600 * 1000));
+    state.streakDays = diffDays === 1 ? (state.streakDays || 0) + 1 : 1;
+    state.lastActiveDate = tk;
+    saveState();
+    const achieved = maybeGrantStreakAchievements();
+    if (achieved) {
+      showToast({
+        title: `🏅 成就达成：连续 ${achieved} 天`,
+        sub: `奖励已发放：💜 紫星 +${ACHIEVEMENT_REWARD_PURPLE}`,
+        showBadge: true
+      });
+    }
+  }
+}
+
+function addStarsYellow(n) {
+  state.starsYellow = Math.max(0, (state.starsYellow || 0) + n);
+}
+
+function addXp(n) {
+  state.xp = Math.max(0, (state.xp || 0) + n);
+}
+
+function getLevelInfo(xp) {
+  // Lv1: 0-49, Lv2: 50-119, Lv3: 120-219 ... (逐级 +20 需求)
+  let level = 1;
+  let need = 50;
+  let remaining = xp;
+  while (remaining >= need) {
+    remaining -= need;
+    level++;
+    need += 20;
+  }
+  const stage =
+    level <= 1 ? '幼苗期' :
+    level <= 3 ? '生长期' :
+    level <= 6 ? '茁壮期' : '繁盛期';
+  return { level, stage, cur: remaining, need };
+}
+
+function formatStreakText(days) {
+  const d = Math.max(1, days || 1);
+  if (d === 1) return { num: `连续登录 ${d} 天`, sub: '从今天开始照顾自己，小嫩芽已经在期待啦～' };
+  if (d < 7)  return { num: `连续登录 ${d} 天`, sub: '稳稳的，很棒～' };
+  if (d < 21) return { num: `连续登录 ${d} 天`, sub: '习惯正在长出来～' };
+  return { num: `连续登录 ${d} 天`, sub: '你真的太厉害了！' };
+}
+
+function renderTopStars() {
+  const y = document.getElementById('ui-stars-yellow');
+  const p = document.getElementById('ui-stars-purple');
+  if (y) y.textContent = String(state.starsYellow || 0);
+  if (p) p.textContent = String(state.starsPurple || 0);
+}
+
+function renderHomeProgress() {
+  const { level, stage, cur, need } = getLevelInfo(state.xp || 0);
+  const xpText = document.getElementById('ui-xp-text');
+  const xpFill = document.getElementById('ui-xp-fill');
+  const levelText = document.getElementById('ui-level-text');
+  if (xpText) xpText.textContent = `${cur} / ${need}`;
+  if (xpFill) xpFill.style.width = `${Math.max(0, Math.min(100, Math.round((cur / need) * 100)))}%`;
+  if (levelText) levelText.textContent = `Lv.${level} · ${stage}`;
+}
+
+function renderStreak() {
+  const days = state.streakDays || 1;
+  const { num, sub } = formatStreakText(days);
+  const numEl = document.getElementById('ui-streak-num');
+  const subEl = document.getElementById('ui-streak-sub');
+  const card = document.getElementById('home-streak-card');
+  if (numEl) numEl.textContent = num;
+  if (subEl) subEl.textContent = sub;
+
+  // 每天首次登录显示一次，之后不再显示
+  if (card) {
+    if (!state.daily?.streakShownToday) {
+      window.clearTimeout(renderStreak._hideTimer);
+      card.classList.remove('hidden');
+      renderStreak._hideTimer = window.setTimeout(() => {
+        card.classList.add('hidden');
+      }, 2600);
+      state.daily.streakShownToday = true;
+      saveState();
+    } else {
+      card.classList.add('hidden');
+    }
+  }
+}
+
+function renderAdventure() {
+  const y = state.starsYellow || 0;
+  const prog = document.getElementById('ui-adventure-progress');
+  const fill = document.getElementById('ui-adventure-fill');
+  const hint = document.getElementById('ui-adventure-hint');
+  if (prog) prog.textContent = `${Math.min(y, ADVENTURE_UNLOCK_STARS)} / ${ADVENTURE_UNLOCK_STARS} ⭐`;
+  if (fill) fill.style.width = `${Math.max(0, Math.min(100, Math.round((y / ADVENTURE_UNLOCK_STARS) * 100)))}%`;
+  const left = Math.max(0, ADVENTURE_UNLOCK_STARS - y);
+  if (hint) hint.textContent = left > 0 ? `🌱 再攒 ${left} 颗星星就能解锁！` : '⚔️ 冒险已解锁！';
+}
+
+function renderWishBalance() {
+  const y = document.getElementById('ui-wish-stars-yellow');
+  const p = document.getElementById('ui-wish-stars-purple');
+  if (y) y.textContent = String(state.starsYellow || 0);
+  if (p) p.textContent = String(state.starsPurple || 0);
+}
+
+function renderWishCards() {
+  const current = state.starsYellow || 0;
+  document.querySelectorAll('#page-wishes .wish-card[data-wish-cost]').forEach(card => {
+    const cost = parseInt(card.getAttribute('data-wish-cost') || '0', 10) || 0;
+    const id = card.getAttribute('data-wish-id') || '';
+    const redeemed = !!(id && state.wishes?.redeemed?.[id]);
+    const costLine = card.querySelector('.wish-cost');
+    const fill = card.querySelector('.wish-fill');
+    const badge = card.querySelector('.wish-ready');
+    const pct = cost > 0 ? Math.min(100, Math.round((current / cost) * 100)) : 0;
+
+    if (costLine) costLine.textContent = `需要 ${cost} ⭐ · 已攒 ${current}`;
+    if (fill) fill.style.width = `${pct}%`;
+
+    if (redeemed) {
+      if (badge) { badge.textContent = '已兑换 ✓'; badge.style.background = 'var(--purple2)'; }
+      card.onclick = null;
+      card.style.cursor = 'default';
+      card.style.opacity = '0.6';
+      return;
+    }
+
+    if (pct >= 100) {
+      if (!badge) {
+        const b = document.createElement('div');
+        b.className = 'wish-ready';
+        b.textContent = '可兑换！';
+        card.appendChild(b);
+      } else {
+        badge.textContent = '可兑换！';
+        badge.style.background = 'var(--green2)';
+      }
+      card.style.cursor = 'pointer';
+      const name = card.getAttribute('data-wish-name') || (card.querySelector('.wish-name')?.textContent || '愿望');
+      card.onclick = function() { redeemWish(card, name, cost); };
+      card.style.opacity = '1';
+    } else {
+      if (badge) badge.remove();
+      card.onclick = null;
+      card.style.cursor = 'default';
+      card.style.opacity = '1';
+    }
+  });
+}
+
+function applyTaskDoneStateFromStorage() {
+  document.querySelectorAll('#page-tasks .task-card[data-task-id]').forEach(card => {
+    const id = card.getAttribute('data-task-id');
+    if (!id) return;
+    const done = !!state.daily?.taskDoneIds?.[id];
+    card.classList.toggle('done', done);
+    const chk = card.querySelector('.chk');
+    if (chk) chk.textContent = done ? '✓' : '';
+  });
+}
+
+function render() {
+  renderTopStars();
+  renderHomeProgress();
+  renderStreak();
+  renderAdventure();
+  renderWishBalance();
+  renderWishCards();
+  applyTaskDoneStateFromStorage();
+  // tomato earned today
+  const earnedEl = document.getElementById('tomato-earned');
+  if (earnedEl) earnedEl.textContent = String(state.daily?.tomatoEarned || 0);
+
+  const wishStreak = document.getElementById('ui-wish-streak');
+  if (wishStreak) wishStreak.textContent = `已连续登录 ${state.streakDays || 1} 天`;
+}
+
+// ── navigation ──
+function goPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  render();
+}
+
+// ── regular task toggle ──
+function toggleTask(card) {
+  ensureToday();
+  const id = card.getAttribute('data-task-id');
+  const chk = card.querySelector('.chk');
+  if (!id) {
+    // fallback: behave like old version, but do not grant stars
+    card.classList.toggle('done');
+    if (chk) chk.textContent = card.classList.contains('done') ? '✓' : '';
+    return;
+  }
+  if (state.daily.taskDoneIds[id]) return; // 防止反复刷星
+
+  state.daily.taskDoneIds[id] = true;
+  card.classList.add('done');
+  if (chk) chk.textContent = '✓';
+
+  // parse reward like "⭐×2"
+  const rewardEl = card.querySelector('.t-reward');
+  const rewardTxt = rewardEl ? rewardEl.textContent : '';
+  const m = rewardTxt.match(/×\s*(\d+)/);
+  const gain = m ? parseInt(m[1], 10) : 0;
+  if (gain > 0) {
+    addStarsYellow(gain);
+    addXp(gain); // 简单映射：1 星 = 1 经验
+  }
+  saveState();
+  render();
+}
+
+// ── water: one tap = one star, auto new card ──
+function addWaterCard() {
+  const list = document.getElementById('water-list');
+  const card = document.createElement('div');
+  card.className = 'task-card cb';
+  card.innerHTML = `
+    <div class="t-emoji">💧</div>
+    <div class="t-info">
+      <div class="t-name">喝水</div>
+      <div class="t-sub">今天喝了 ${state.daily?.waterCount || 0} 杯 · 点击再喝一杯</div>
+    </div>
+    <div class="t-reward">⭐×1</div>
+    <div class="chk"></div>`;
+  card.onclick = function() { drinkWater(this); };
+  list.appendChild(card);
+}
+
+function drinkWater(card) {
+  ensureToday();
+  // mark current card done
+  card.classList.add('done');
+  card.querySelector('.chk').textContent = '✓';
+  card.onclick = null;
+  state.daily.waterCount = (state.daily.waterCount || 0) + 1;
+  addStarsYellow(1);
+  addXp(1);
+  saveState();
+  // update all water card subtitles
+  document.querySelectorAll('#water-list .t-sub').forEach(s => {
+    s.textContent = '今天喝了 ' + (state.daily?.waterCount || 0) + ' 杯 · 点击再喝一杯';
+  });
+  // fix done cards subtitle
+  card.querySelector('.t-sub').textContent = '今天喝了 ' + (state.daily?.waterCount || 0) + ' 杯 ✓';
+  // add a fresh card below
+  addWaterCard();
+  render();
+}
+
+// init first water card
+function resetWaterListUI() {
+  const list = document.getElementById('water-list');
+  if (!list) return;
+  list.innerHTML = '';
+  addWaterCard();
+}
+ensureToday();
+resetWaterListUI();
+
+// ── tomato timer ──
+const TOMATO_SECS  = 25 * 60;
+const TOMATO_STARS = 10;
+const TOMATO_CAP   = 100;
+let tomatoSecs     = TOMATO_SECS;
+let tomatoRunning  = false;
+let tomatoInterval = null;
+
+function openTomato() {
+  ensureToday();
+  const tomatoEarned = state.daily?.tomatoEarned || 0;
+  if (tomatoEarned >= TOMATO_CAP) {
+    alert('今日已达上限 100 颗星星，明天继续加油！');
+    return;
+  }
+  tomatoSecs    = TOMATO_SECS;
+  tomatoRunning = false;
+  updateTomatoDisplay();
+  document.getElementById('tomato-modal').classList.add('open');
+  startTomato();
+}
+function toggleTomato() {
+  if (tomatoRunning) {
+    clearInterval(tomatoInterval);
+    tomatoRunning = false;
+    document.getElementById('tomato-action-btn').textContent = '▶ 继续';
+    document.getElementById('tomato-status-txt').textContent = '已暂停';
+  } else {
+    startTomato();
+  }
+}
+function startTomato() {
+  tomatoRunning = true;
+  document.getElementById('tomato-action-btn').textContent = '⏸ 暂停';
+  document.getElementById('tomato-status-txt').textContent = '专注中...';
+  tomatoInterval = setInterval(() => {
+    tomatoSecs--;
+    updateTomatoDisplay();
+    if (tomatoSecs <= 0) {
+      clearInterval(tomatoInterval);
+      tomatoRunning = false;
+      finishTomato();
+    }
+  }, 1000);
+}
+function updateTomatoDisplay() {
+  const m = String(Math.floor(tomatoSecs / 60)).padStart(2,'0');
+  const s = String(tomatoSecs % 60).padStart(2,'0');
+  document.getElementById('tomato-timer').textContent = m + ':' + s;
+  // ring progress
+  const pct      = tomatoSecs / TOMATO_SECS;
+  const circumf  = 326.7;
+  document.getElementById('tomato-ring').setAttribute('stroke-dashoffset', circumf * pct);
+}
+function finishTomato() {
+  ensureToday();
+  document.getElementById('tomato-modal').classList.remove('open');
+  const prevEarned = state.daily?.tomatoEarned || 0;
+  const gain       = Math.min(TOMATO_STARS, TOMATO_CAP - prevEarned);
+  state.daily.tomatoEarned = prevEarned + gain;
+  addStarsYellow(gain);
+  addXp(gain * 2); // 番茄专注额外经验
+  saveState();
+  render();
+  const remaining = TOMATO_CAP - (state.daily?.tomatoEarned || 0);
+  let desc = '获得 ⭐×' + gain + '！今日已累计 ' + (state.daily?.tomatoEarned || 0) + ' 颗';
+  if (remaining <= 0) desc += '\n🎊 今日上限达成！';
+  else desc += '，还可再得 ' + remaining + ' 颗';
+  document.getElementById('tomato-done-desc').textContent = desc;
+  if ((state.daily?.tomatoEarned || 0) >= TOMATO_CAP) {
+    document.getElementById('tomato-btn').textContent = '已达上限';
+    document.getElementById('tomato-btn').style.background = 'var(--purple)';
+  }
+  document.getElementById('tomato-done').classList.add('open');
+}
+function closeTomatoModal() {
+  clearInterval(tomatoInterval);
+  tomatoRunning = false;
+  document.getElementById('tomato-modal').classList.remove('open');
+}
+function closeTomatoOutside(e) {
+  if (e.target === document.getElementById('tomato-modal')) {} // 防止误触关闭
+}
+function closeTomatoDone() {
+  document.getElementById('tomato-done').classList.remove('open');
+}
+
+// ── redeem wish ──
+let currentRedeemCard = null;
+let currentRedeemCost = 0;
+
+function redeemWish(card, name, cost) {
+  ensureToday();
+  currentRedeemCard = card;
+  currentRedeemCost = cost;
+  const emoji = card.querySelector('.wish-emoji').textContent;
+  document.getElementById('redeem-emoji').textContent = emoji;
+  document.getElementById('redeem-title').textContent = '确认兑换「' + name + '」？';
+  document.getElementById('redeem-desc').textContent = '将消耗 ' + cost + ' ⭐，当前余额 ' + (state.starsYellow || 0) + ' ⭐';
+  document.getElementById('redeem-modal').classList.add('open');
+}
+function closeRedeemModal() {
+  document.getElementById('redeem-modal').classList.remove('open');
+  currentRedeemCard = null;
+}
+function closeRedeemOutside(e) {
+  if (e.target === document.getElementById('redeem-modal')) closeRedeemModal();
+}
+function confirmRedeem() {
+  ensureToday();
+  if (!currentRedeemCard) return;
+  if ((state.starsYellow || 0) < currentRedeemCost) {
+    closeRedeemModal();
+    alert('星星不够啦～先去完成任务攒星星吧！');
+    return;
+  }
+  const name = currentRedeemCard.querySelector('.wish-name').textContent;
+  const emoji = currentRedeemCard.querySelector('.wish-emoji').textContent;
+  const wishId = currentRedeemCard.getAttribute('data-wish-id') || null;
+  addStarsYellow(-currentRedeemCost);
+  if (!state.wishes) state.wishes = { redeemed: {}, custom: [] };
+  if (!state.wishes.redeemed) state.wishes.redeemed = {};
+  if (wishId) state.wishes.redeemed[wishId] = { at: Date.now(), cost: currentRedeemCost, name };
+  saveState();
+  // hide redeem button on card
+  const badge = currentRedeemCard.querySelector('.wish-ready');
+  if (badge) { badge.textContent = '已兑换 ✓'; badge.style.background = 'var(--purple2)'; }
+  currentRedeemCard.onclick = null;
+  currentRedeemCard.style.opacity = '0.6';
+  closeRedeemModal();
+  // show success
+  document.getElementById('success-desc').textContent = emoji + ' ' + name + ' 兑换成功，好好享受吧！';
+  document.getElementById('redeem-success').classList.add('open');
+  render();
+}
+
+
+const wishColors = ['var(--pink)','var(--blue)','var(--yellow)','var(--mint)','var(--purple)'];
+const wishEmojis = ['🌟','🎁','🛍️','🍰','🌺','🎵','🏖️','💌','🧸','🎠'];
+let wIdx = 0;
+
+function openWishModal() {
+  document.getElementById('wish-modal').classList.add('open');
+  setTimeout(() => document.getElementById('wish-name-input').focus(), 100);
+}
+function closeWishModal() {
+  document.getElementById('wish-modal').classList.remove('open');
+  document.getElementById('wish-name-input').value = '';
+  document.getElementById('wish-cost-input').value = '';
+}
+function closeWishOutside(e) {
+  if (e.target === document.getElementById('wish-modal')) closeWishModal();
+}
+function addWish() {
+  ensureToday();
+  const name = document.getElementById('wish-name-input').value.trim();
+  if (!name) { document.getElementById('wish-name-input').focus(); return; }
+  const cost = parseInt(document.getElementById('wish-cost-input').value) || 100;
+  const current = state.starsYellow || 0;
+  const pct = Math.min(100, Math.round(current / cost * 100));
+  const color = wishColors[wIdx % wishColors.length];
+  const emoji = wishEmojis[wIdx % wishEmojis.length];
+  wIdx++;
+
+  const list = document.querySelector('#page-wishes .scroll-area');
+  const btn  = list.querySelector('.add-btn');
+  const card = document.createElement('div');
+  card.className = 'wish-card';
+  card.style.background = color;
+  const wishId = 'custom_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+  card.setAttribute('data-wish-id', wishId);
+  card.setAttribute('data-wish-name', name);
+  card.setAttribute('data-wish-cost', String(cost));
+  card.innerHTML = `
+    <div class="wish-emoji">${emoji}</div>
+    <div class="wish-info">
+      <div class="wish-name">${name}</div>
+      <div class="wish-cost">需要 ${cost} ⭐ · 已攒 ${current}</div>
+      <div class="wish-prog"><div class="wish-fill" style="width:${pct}%"></div></div>
+    </div>
+    ${pct >= 100 ? '<div class="wish-ready">可兑换！</div>' : ''}`;
+  if (pct >= 100) {
+    card.style.cursor = 'pointer';
+    card.onclick = function() { redeemWish(this, name, cost); };
+  }
+  list.insertBefore(card, btn);
+  if (!state.wishes) state.wishes = { redeemed: {}, custom: [] };
+  if (!state.wishes.custom) state.wishes.custom = [];
+  state.wishes.custom.push({ id: wishId, name, cost, emoji, color });
+  saveState();
+  closeWishModal();
+  render();
+}
+
+// ── add custom task ──
+const colors  = ['cp','cy','cb','cg','cm','cv'];
+const emojis  = ['🌟','🎯','💪','🌈','🎵','🌸','🏃','📖','🧘','🎨'];
+let cIdx = 0, eIdx = 0;
+
+function openAddModal() {
+  document.getElementById('add-modal').classList.add('open');
+  setTimeout(() => document.getElementById('task-name-input').focus(), 100);
+}
+function closeAddModal() {
+  document.getElementById('add-modal').classList.remove('open');
+  document.getElementById('task-name-input').value = '';
+  document.getElementById('task-note-input').value = '';
+}
+function closeAddOutside(e) {
+  if (e.target === document.getElementById('add-modal')) closeAddModal();
+}
+function addCustomTask() {
+  ensureToday();
+  const name = document.getElementById('task-name-input').value.trim();
+  if (!name) { document.getElementById('task-name-input').focus(); return; }
+  const note = document.getElementById('task-note-input').value.trim() || '自定义任务';
+  const list = document.querySelector('#page-tasks .scroll-area');
+  const btn  = list.querySelector('.add-btn');
+  const card = document.createElement('div');
+  const taskId = 'custom_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+  card.className = 'task-card ' + colors[cIdx % colors.length];
+  card.setAttribute('data-task-id', taskId);
+  card.onclick = function() { toggleTask(this); };
+  card.innerHTML = `
+    <div class="t-emoji">${emojis[eIdx % emojis.length]}</div>
+    <div class="t-info"><div class="t-name">${name}</div><div class="t-sub">${note}</div></div>
+    <div class="t-reward">⭐×1</div>
+    <div class="chk"></div>`;
+  list.insertBefore(card, btn);
+  cIdx++; eIdx++;
+  if (!state.customTasks) state.customTasks = [];
+  state.customTasks.push({ id: taskId, name, note, color: colors[(cIdx - 1) % colors.length], emoji: emojis[(eIdx - 1) % emojis.length], reward: 1 });
+  saveState();
+  closeAddModal();
+  render();
+}
+
+function renderCustomTasks() {
+  const list = document.querySelector('#page-tasks .scroll-area');
+  if (!list) return;
+  const btn = list.querySelector('.add-btn');
+  if (!btn) return;
+  // remove old rendered custom tasks
+  list.querySelectorAll('.task-card[data-custom-rendered="1"]').forEach(n => n.remove());
+  (state.customTasks || []).forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'task-card ' + (t.color || 'cp');
+    card.setAttribute('data-task-id', t.id);
+    card.setAttribute('data-custom-rendered', '1');
+    card.onclick = function() { toggleTask(this); };
+    card.innerHTML = `
+      <div class="t-emoji">${t.emoji || '🌟'}</div>
+      <div class="t-info"><div class="t-name">${t.name}</div><div class="t-sub">${t.note || '自定义任务'}</div></div>
+      <div class="t-reward">⭐×${t.reward || 1}</div>
+      <div class="chk"></div>`;
+    list.insertBefore(card, btn);
+  });
+}
+
+function renderCustomWishes() {
+  const list = document.querySelector('#page-wishes .scroll-area');
+  if (!list) return;
+  const btn = list.querySelector('.add-btn');
+  if (!btn) return;
+  list.querySelectorAll('.wish-card[data-custom-rendered="1"]').forEach(n => n.remove());
+  (state.wishes?.custom || []).forEach(w => {
+    // if already exists in DOM (just added), skip
+    if (document.querySelector(`#page-wishes .wish-card[data-wish-id="${w.id}"]`)) return;
+    const card = document.createElement('div');
+    card.className = 'wish-card';
+    card.style.background = w.color || 'var(--pink)';
+    card.setAttribute('data-wish-id', w.id);
+    card.setAttribute('data-wish-name', w.name);
+    card.setAttribute('data-wish-cost', String(w.cost));
+    card.setAttribute('data-custom-rendered', '1');
+    card.innerHTML = `
+      <div class="wish-emoji">${w.emoji || '🌟'}</div>
+      <div class="wish-info">
+        <div class="wish-name">${w.name}</div>
+        <div class="wish-cost">需要 ${w.cost} ⭐ · 已攒 ${state.starsYellow || 0}</div>
+        <div class="wish-prog"><div class="wish-fill" style="width:0%"></div></div>
+      </div>`;
+    list.insertBefore(card, btn);
+  });
+}
+
+// ── settings / reset ──
+function openSettings() {
+  document.getElementById('settings-modal')?.classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settings-modal')?.classList.remove('open');
+}
+function closeSettingsOutside(e) {
+  if (e.target === document.getElementById('settings-modal')) closeSettings();
+}
+function resetData() {
+  const ok = confirm('确定要重置所有数据吗？（星星/任务/愿望/成就都会清空）');
+  if (!ok) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = loadState();
+  ensureToday();
+  resetWaterListUI();
+  renderCustomTasks();
+  renderCustomWishes();
+  render();
+  closeSettings();
+  showToast({ title: '已重置为初始状态', sub: '从今天开始，连续 1 天照顾自己～' });
+}
+
+// ── boot ──
+ensureToday();
+resetWaterListUI();
+renderCustomTasks();
+renderCustomWishes();
+render();
+
+// 同一天重复打开也弹出一次提示（满足“打开时弹出然后消失”）
+// 登录提示统一由主页卡片承担；toast 仅用于“成就奖励”提示
+
+// ── PWA service worker ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
