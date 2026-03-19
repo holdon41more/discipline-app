@@ -1,0 +1,18 @@
+{
+  "name": "自律小星球",
+  "short_name": "自律小星球",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EDE6FF",
+  "theme_color": "#EDE6FF",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
