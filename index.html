@@ -858,7 +858,9 @@ const STREAK_MILESTONES = [7, 15, 30];
 
 // ⚠️ 开发自用，上线前请移除或替换
 const QWEN_API_KEY = 'sk-2676f235ec5c44e3842629bb5a969300';
-const QWEN_ENDPOINT = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+// 使用CORS代理来解决跨域问题
+const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
+const QWEN_ENDPOINT = CORS_PROXY + 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
 const QWEN_MODEL = 'qwen-plus-2025-07-28';
 
 const FALLBACK_PHRASES = [
@@ -959,6 +961,7 @@ async function showAiBubble(prompt) {
 
     const response = await fetch(QWEN_ENDPOINT, {
       method: 'POST',
+      mode: 'cors',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${QWEN_API_KEY}`
