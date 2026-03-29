@@ -64,8 +64,77 @@
   .chip.y { background: var(--yellow); }
   .chip.p { background: var(--purple); }
   .plant-stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 20px 4px; }
-  .plant-wrap { width: 300px; height: 320px; }
+  .plant-wrap { width: 300px; height: 320px; position: relative; }
   .plant-svg { width: 100%; height: 100%; overflow: visible; }
+  
+  /* ── AI 语音气泡 ── */
+  .ai-bubble {
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--white);
+    border: 2.5px solid var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
+    border-radius: 16px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--ink);
+    max-width: 240px;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+  
+  .ai-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid var(--ink);
+  }
+  
+  .ai-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 7px solid var(--white);
+    z-index: 1;
+  }
+  
+  .ai-bubble.show {
+    opacity: 1;
+    animation: bubblePop 250ms cubic-bezier(.34,1.56,.64,1);
+  }
+  
+  .ai-bubble.hide {
+    opacity: 0;
+    animation: bubbleFade 300ms ease-out forwards;
+  }
+  
+  @keyframes bubblePop {
+    0% { transform: translateX(-50%) scale(0); }
+    100% { transform: translateX(-50%) scale(1); }
+  }
+  
+  @keyframes bubbleFade {
+    0% { opacity: 1; transform: translateX(-50%) scale(1); }
+    100% { opacity: 0; transform: translateX(-50%) scale(0.95); }
+  }
+  
   @keyframes bob      { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
   @keyframes sway-l   { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(-11deg)} }
   @keyframes sway-r   { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(11deg)} }
@@ -443,6 +512,9 @@
       </div>
       <div class="plant-stage">
         <div class="plant-wrap">
+          <!-- AI 语音气泡 -->
+          <div class="ai-bubble" id="ai-bubble"></div>
+          
           <svg class="plant-svg" viewBox="0 0 300 320" xmlns="http://www.w3.org/2000/svg">
             <!-- 底部投影 -->
             <ellipse class="glow" cx="150" cy="285" rx="60" ry="15" fill="rgba(42, 31, 61, 0.1)" />
@@ -784,6 +856,22 @@ const ADVENTURE_UNLOCK_STARS = 500;
 const ACHIEVEMENT_REWARD_PURPLE = 10;
 const STREAK_MILESTONES = [7, 15, 30];
 
+// ⚠️ 开发自用，上线前请移除或替换
+const QWEN_API_KEY = 'sk-2676f235ec5c44e3842629bb5a969300';
+const QWEN_ENDPOINT = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+const QWEN_MODEL = 'qwen-plus-2025-07-28';
+
+const FALLBACK_PHRASES = [
+  '你今天超棒的！🌟✨',
+  '哇！小嫩芽好爱你💚',
+  '太厉害啦！继续加油🎉',
+  '你是最闪亮的星星⭐💫',
+  '小嫩芽为你疯狂鼓掌👏🌱',
+  '你做到了！开心到转圈圈🌀💕',
+];
+
+let _aiLock = false;
+
 function todayKey(d = new Date()) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -805,6 +893,7 @@ function defaultState() {
       waterCount: 0,
       taskDoneIds: {},
       streakShownToday: false,
+      aiGreetedToday: false,
     },
     customTasks: [],
     wishes: {
@@ -838,13 +927,79 @@ function loadState() {
 }
 
 let state = loadState();
+let pageInitialized = false;
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
 function resetDaily(tk) {
-  state.daily = { date: tk, tomatoEarned: 0, waterCount: 0, taskDoneIds: {}, streakShownToday: false };
+  state.daily = { date: tk, tomatoEarned: 0, waterCount: 0, taskDoneIds: {}, streakShownToday: false, aiGreetedToday: false };
+}
+
+// ── AI 语音气泡 ──
+async function showAiBubble(prompt) {
+  if (_aiLock) return;
+  _aiLock = true;
+
+  const bubble = document.getElementById('ai-bubble');
+  if (!bubble) {
+    _aiLock = false;
+    return;
+  }
+
+  bubble.textContent = '...';
+  bubble.classList.remove('hide');
+  bubble.classList.add('show');
+
+  let content = '';
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    const response = await fetch(QWEN_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${QWEN_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: QWEN_MODEL,
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 60
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API response error:', response.status, errorText);
+      throw new Error(`API request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('API response:', data);
+    content = data.choices?.[0]?.message?.content || '';
+    
+    if (!content) {
+      throw new Error('Empty response from API');
+    }
+  } catch (error) {
+    console.error('AI API error:', error);
+    const randomIndex = Math.floor(Math.random() * FALLBACK_PHRASES.length);
+    content = FALLBACK_PHRASES[randomIndex];
+  }
+
+  bubble.textContent = content;
+
+  setTimeout(() => {
+    bubble.classList.remove('show');
+    bubble.classList.add('hide');
+  }, 5000);
+
+  _aiLock = false;
 }
 
 function showToast({ title, sub, showBadge = false }) {
@@ -958,9 +1113,9 @@ function renderStreak() {
   if (numEl) numEl.textContent = num;
   if (subEl) subEl.textContent = sub;
 
-  // 每天首次登录显示一次，之后不再显示
+  // 只在页面首次加载时显示一次，之后不再显示
   if (card) {
-    if (!state.daily?.streakShownToday) {
+    if (!pageInitialized && !state.daily?.streakShownToday) {
       window.clearTimeout(renderStreak._hideTimer);
       card.classList.remove('hidden');
       renderStreak._hideTimer = window.setTimeout(() => {
@@ -1062,6 +1217,18 @@ function render() {
 
   const wishStreak = document.getElementById('ui-wish-streak');
   if (wishStreak) wishStreak.textContent = `已连续登录 ${state.streakDays || 1} 天`;
+
+  // 标记页面已初始化，防止streak卡片重复显示
+  pageInitialized = true;
+
+  // 首次打开时触发AI问候
+  if (state.daily && state.daily.date === todayKey() && !state.daily.aiGreetedToday) {
+    setTimeout(() => {
+      showAiBubble('你是住在手机里的萌宠植物小嫩芽。用户今天第一次打开了 App，用一句话（20字以内）热情迎接他们，多用 Emoji。');
+      state.daily.aiGreetedToday = true;
+      saveState();
+    }, 500);
+  }
 }
 
 // ── navigation ──
@@ -1082,6 +1249,8 @@ function toggleTask(card) {
     if (chk) chk.textContent = card.classList.contains('done') ? '✓' : '';
     return;
   }
+  
+  const wasDone = !!state.daily.taskDoneIds[id];
   if (state.daily.taskDoneIds[id]) return; // 防止反复刷星
 
   state.daily.taskDoneIds[id] = true;
@@ -1099,6 +1268,15 @@ function toggleTask(card) {
   }
   saveState();
   render();
+
+  // 任务从未完成变为完成时触发AI赞美
+  if (!wasDone) {
+    const taskNameEl = card.querySelector('.t-name');
+    const taskName = taskNameEl ? taskNameEl.textContent : '任务';
+    setTimeout(() => {
+      showAiBubble(`你是住在手机里的萌宠植物小嫩芽。用户刚完成了「${taskName}」，用一句话（20字以内）疯狂赞美并治愈他们，多用 Emoji。`);
+    }, 300);
+  }
 }
 
 // ── water: one tap = one star, auto new card ──
